@@ -1,4 +1,3 @@
-import os
 import time
 from aip import AipSpeech
 from openai import OpenAI
