@@ -36,9 +36,9 @@ class VoiceProcessor:
                 return result['result'][0]
             else:
                 raise Exception("语音识别失败")
+            
         except Exception as e:
             print(f"处理语音时出错: {e}")
-        
             return None
         
     def aiChat(self, content):
@@ -55,9 +55,9 @@ class VoiceProcessor:
             print("大模型回答结果:", assistant_output)
             print(f"大模型对话耗时: {end_time - start_time:.4f} 秒")
             return assistant_output
+        
         except Exception as e:
             print(f"大模型处理时出错: {e}")
-        
             return None 
 
     def generate_voice(self, answer):
@@ -65,7 +65,6 @@ class VoiceProcessor:
             start_time = time.time()
             result = self.speech_client.synthesis(answer, 'zh', 1, {
                 'vol': 5,
-                
             })
             if not isinstance(result, dict):
                 answer_mp3_path = 'answer_voice.mp3'
@@ -76,6 +75,7 @@ class VoiceProcessor:
                 return answer_mp3_path
             else:
                 raise Exception("语音合成失败")
+            
         except Exception as e:
             print(f"处理语音时出错: {e}")
             return None

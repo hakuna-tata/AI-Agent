@@ -35,8 +35,10 @@ def voice_process():
             return send_file(answer_mp3_path, mimetype='audio/mp3')
         else:
             return "语音处理失败", 500
+        
     except Exception as e:
         return str(e), 500
+    
     finally:
         if os.path.exists('received_voice.wav'):
             os.remove('received_voice.wav')
