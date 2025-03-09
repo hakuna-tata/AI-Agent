@@ -1,0 +1,106 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  background-repeat: no-repeat;
+  background-image: url(https://img1.baidu.com/it/u=2648233213,1125340451&fm=253&fmt=auto&app=120&f=JPEG?w=500&h=1000);
+  background-size: cover;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-image: url(https://pic.rmb.bdstatic.com/bjh/240328/events/99c42889a7a422a3cc386fd36347d86f5297.jpeg@h_1280);
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.name {
+  margin-left: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: scroll;
+  padding: 0 10px 80px;
+}
+
+.message {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.user {
+  background-color: #e1f5fe;
+  align-self: flex-end;
+}
+
+.bot {
+  background-color: #fff;
+  align-self: flex-start;
+}
+
+.input-container {
+  position: fixed;
+  height: 60px;
+  bottom: 0px;
+  padding: 10px;
+  background-color: #fff;
+}
+
+.chat-input {
+  height: 100%;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  background-color: #e5e5e5;
+}
+
+input {
+  flex: 1;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.button {
+  width: 90px;
+}
+
+.button + .button {
+  margin-left: 8px;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.loading-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
