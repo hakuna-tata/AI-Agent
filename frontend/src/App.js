@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Button, SpinLoading  } from 'antd-mobile';
+import convertToWAV from './utils/convertToWAV' 
 import './App.css';
 import Speech from 'speak-tts';
 
@@ -24,12 +25,14 @@ function App() {
           };
           mr.onstop = () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            setMessages(prevMessages => [
-              ...prevMessages,
-              { type: 'audio', url: audioUrl, isUser: true }
-            ]);
-            audioChunks = [];
+            convertToWAV(audioBlob).then((wavBlob) => {
+              const audioUrl = URL.createObjectURL(wavBlob);
+              setMessages(prevMessages => [
+                ...prevMessages,
+                { id: Date.now(), type: 'sent', mediaType: 'audio', content: audioUrl }
+              ]);
+              audioChunks = [];
+            });
           };
           setMediaRecorder(mr);
         })
@@ -57,18 +60,28 @@ function App() {
     initSpeak();
   }, []);
 
+  useEffect(() => {
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+    };
+    document.addEventListener('contextmenu', handleContextMenu);
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, []);
+
   const sendMessage = async () => {
     if (inputText.trim() !== '') {
       setMessages((prevMessages) => [
         ...prevMessages,
-        { type: 'text', text: inputText, isUser: true }
+        { id: Date.now(), type: 'sent', mediaType: 'text', content: inputText }
       ]);
       setInputText('');
 
-      const reply = "示例回复";
+      const reply = "你好";
       setMessages((prevMessages) => [
         ...prevMessages,
-        { type: 'text', text: reply, isUser: false }
+        { id: Date.now(), type: 'received', mediaType: 'text', content: reply }
       ]);
 
       try {
@@ -79,11 +92,11 @@ function App() {
     }
   };
 
-  const handleMouseDown = () => {
+  const handleTouchStart = () => {
     setIsSpeak(true);
     mediaRecorder?.start();
   };
-  const handleMouseUp = () => {
+  const handleTouchEnd = () => {
     setIsSpeak(false);
     mediaRecorder?.stop();
   };
@@ -96,15 +109,12 @@ function App() {
       </div>
       <div className="chat-messages">
         {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.isUser ? 'user' : 'bot'}`}>
-            {msg.type === 'audio' && (
-              <audio controls>
-                <source src={msg.url} type="audio/wav" />
-                您的浏览器不支持音频播放。
-              </audio>
+          <div key={index} className={`message ${msg.type}`}>
+            {msg.mediaType === "audio" && (
+              <audio src={msg.content} controls className="audio" />
             )}
             {
-              msg.type === 'text' && msg.text
+              msg.mediaType === "text" && msg.content
             }
           </div>
         ))}
@@ -120,8 +130,8 @@ function App() {
           <Button
             className='button'
             color='primary'
-            onTouchStart={handleMouseDown}
-            onTouchEnd={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >{isSpeak ? '停止' : '语音'}</Button>
         </div>
       </div>
