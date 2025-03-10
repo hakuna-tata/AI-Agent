@@ -2,6 +2,9 @@ import time
 from aip import AipSpeech
 from openai import OpenAI
 
+import voice_copy_tts
+
+
 class VoiceProcessor:
     def __init__(self, app_id, api_key, secret_key, openai_key):
         self.speech_client = AipSpeech(
@@ -83,7 +86,7 @@ class VoiceProcessor:
         try:
             client_voice_conetent=self.parse_voice(voice_file_path)
             ai_chat_content=self.aiChat(client_voice_conetent)
-            generate_content_audio=self.generate_voice(ai_chat_content)
+            generate_content_audio=voice_copy_tts.submit_tts(ai_chat_content)
             return generate_content_audio
         
         except Exception as e:
