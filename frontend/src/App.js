@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Button, SpinLoading  } from 'antd-mobile';
-import convertToWAV from './utils/convertToWAV' 
+import axios from "axios";
+import convertToWAV from './utils/convertToWAV';
 import './App.css';
-import Speech from 'speak-tts';
-
-const sp = new Speech();
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -26,11 +24,7 @@ function App() {
           mr.onstop = () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
             convertToWAV(audioBlob).then((wavBlob) => {
-              const audioUrl = URL.createObjectURL(wavBlob);
-              setMessages(prevMessages => [
-                ...prevMessages,
-                { id: Date.now(), type: 'sent', mediaType: 'audio', content: audioUrl }
-              ]);
+              sendVoice(wavBlob);
               audioChunks = [];
             });
           };
@@ -45,22 +39,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const initSpeak = async () => {
-      try {
-        await sp.init({
-          volume: 1,
-          lang: 'zh-CN',
-          rate: 1,
-          pitch: 1,
-        });
-      } catch (error) {
-        console.error('语音初始化失败:', error);
-      }
-    };
-    initSpeak();
-  }, []);
-
-  useEffect(() => {
     const handleContextMenu = (e) => {
       e.preventDefault();
     };
@@ -70,24 +48,61 @@ function App() {
     };
   }, []);
 
-  const sendMessage = async () => {
+  const sendText = async () => {
     if (inputText.trim() !== '') {
       setMessages((prevMessages) => [
         ...prevMessages,
         { id: Date.now(), type: 'sent', mediaType: 'text', content: inputText }
       ]);
-      setInputText('');
+      try {
+        const response = await axios.post(
+          'http://127.0.0.1:5000/text_process',
+          { text: inputText },
+          {
+            responseType: "blob",
+          }
+        );
+        setInputText('');
 
-      const reply = "你好";
-      setMessages((prevMessages) => [
+        const audioUrl = URL.createObjectURL(response.data);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { id: Date.now(), type: 'received', mediaType: 'audio', content: audioUrl },
+        ]);
+      } catch (e) {
+        console.error('语音获取失败:', e);
+      } finally {
+        setInputText('');
+      }
+    }
+  };
+  const sendVoice = async (wavBlob) => {
+    if (wavBlob) {
+      const audioUrl = URL.createObjectURL(wavBlob);
+      setMessages(prevMessages => [
         ...prevMessages,
-        { id: Date.now(), type: 'received', mediaType: 'text', content: reply }
+        { id: Date.now(), type: 'sent', mediaType: 'audio', content: audioUrl },
       ]);
 
       try {
-        await sp.speak({ text: reply });
-      } catch (error) {
-        console.error('语音播放失败:', error);
+        const formData = new FormData();
+        formData.append('voice', wavBlob, 'voice.wav');
+        const response = await axios.post(
+          'http://127.0.0.1:5000/voice_process',
+          formData,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            responseType: "blob",
+          }
+        );
+
+        const audioUrl = URL.createObjectURL(response.data);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { id: Date.now(), type: 'received', mediaType: 'audio', content: audioUrl },
+        ]);
+      } catch(e) {
+        console.error('语音获取失败:', e);
       }
     }
   };
@@ -126,7 +141,7 @@ function App() {
             value={inputText}
             onChange={(val) => setInputText(val)}
           />
-          <Button className='button' color='primary' onClick={sendMessage}>发送</Button>
+          <Button className='button' color='primary' onClick={sendText}>发送</Button>
           <Button
             className='button'
             color='primary'

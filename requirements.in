@@ -1,0 +1,4 @@
+baidu-aip==4.16.13
+dotenv==0.9.9
+Flask==3.1.0
+openai==1.65.5

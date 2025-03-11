@@ -15,14 +15,30 @@ processor = VoiceProcessor(
 
 @app.after_request
 def add_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'POST'
+    response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
 
     return response
 
 @app.route('/')
 def serve_index():
     return send_from_directory('.', 'index.html')
+
+@app.route('/text_process', methods=['POST'])
+def text_process():
+    try:
+        data = request.get_json()
+        text = data.get("text")
+        if not text:
+            return {"error": "No text provided"}, 400
+        ai_answer = processor.aiChat(text)
+        answer_mp3_path = processor.generate_voice(ai_answer)
+        if answer_mp3_path:
+            return send_file(answer_mp3_path, mimetype='audio/mp3')
+
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 @app.route('/voice_process', methods=['POST'])
 def voice_process():
