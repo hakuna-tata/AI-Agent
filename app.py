@@ -1,16 +1,22 @@
 import os
+import asyncio
+import io
 from dotenv import load_dotenv
 from flask import Flask, request, send_file, send_from_directory
-from voice_processing import VoiceProcessor
+from voice_ai_content import AIChat
+from voice_copy import TTSClient
 
 app = Flask(__name__)
 
 load_dotenv()
-processor = VoiceProcessor(
-    os.getenv('AipSpeech_APP_ID'),
-    os.getenv('AipSpeech_API_KEY'),
-    os.getenv('AipSpeech_SECRET_KEY'),
-    os.getenv('OPENAI_API_KEY')
+aiChatClient = AIChat(
+    os.getenv('OPEN_AI_KEY')
+)
+ttsClient = TTSClient(
+    os.getenv('VOLC_APP_ID'),
+    os.getenv('VOLC_ACCESS_TOKEN'),
+    os.getenv('VOLC_CLUSTER'),
+    os.getenv('VOLC_VOICE_TYPE')
 )
 
 @app.after_request
@@ -32,10 +38,17 @@ def text_process():
         text = data.get("text")
         if not text:
             return {"error": "No text provided"}, 400
-        ai_answer = processor.aiChat(text)
-        answer_mp3_path = processor.generate_voice(ai_answer)
-        if answer_mp3_path:
-            return send_file(answer_mp3_path, mimetype='audio/mp3')
+        
+        content = aiChatClient.aiChat(text)
+        audio_data = asyncio.run(ttsClient.run_submit_tts(content))
+        audio_stream = io.BytesIO(audio_data)
+        response = send_file(
+            audio_stream,
+            mimetype='audio/mpeg',
+            as_attachment=True,
+            download_name='synthesized_audio.mp3'
+        )
+        return response
 
     except Exception as e:
         return {"error": str(e)}, 500
@@ -46,24 +59,25 @@ def voice_process():
         voice_file = request.files['voice']
         voice_path = 'received_voice.wav'
         voice_file.save(voice_path)
-        answer_mp3_path = processor.voice_process_chain(voice_path)
-        if answer_mp3_path:
-            return send_file(answer_mp3_path, mimetype='audio/mp3')
-        else:
-            return "语音处理失败", 500
-        
+
+        audio_text = '你好啊，懒羊羊'
+        content = aiChatClient.aiChat(audio_text)
+        audio_data = asyncio.run(ttsClient.run_submit_tts(content))
+        audio_stream = io.BytesIO(audio_data)
+        response = send_file(
+            audio_stream,
+            mimetype='audio/mpeg',
+            as_attachment=True,
+            download_name='synthesized_audio.mp3'
+        )
+        return response
+
     except Exception as e:
-        return str(e), 500
+        return {"error": str(e)}, 500
     
     finally:
         if os.path.exists('received_voice.wav'):
             os.remove('received_voice.wav')
-        if os.path.exists('answer_voice.mp3'):
-            os.remove('answer_voice.mp3')
-        if os.path.exists('answer_voice.wav'):
-            os.remove('answer_voice.wav')
-        if os.path.exists('answer_voice.mp3'):
-            os.remove('answer_voice.mp3')
 
 if __name__ == '__main__':
     app.run(debug=True)
