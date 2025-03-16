@@ -56,7 +56,7 @@ function App() {
       ]);
       try {
         const response = await axios.post(
-          'http://127.0.0.1:5000/text_process',
+          'http://8.148.226.116:5000/text_process',
           { text: inputText },
           {
             responseType: "blob",
@@ -88,7 +88,7 @@ function App() {
         const formData = new FormData();
         formData.append('voice', wavBlob, 'voice.wav');
         const response = await axios.post(
-          'http://127.0.0.1:5000/voice_process',
+          'http://8.148.226.116:5000/voice_process',
           formData,
           {
             headers: { 'Content-Type': 'multipart/form-data' },
