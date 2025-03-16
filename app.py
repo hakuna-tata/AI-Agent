@@ -6,8 +6,6 @@ from flask import Flask, request, send_file, send_from_directory
 from voice_ai_content import AIChat
 from voice_copy import TTSClient
 
-app = Flask(__name__)
-
 load_dotenv()
 aiChatClient = AIChat(
     os.getenv('OPEN_AI_KEY')
@@ -18,6 +16,9 @@ ttsClient = TTSClient(
     os.getenv('VOLC_CLUSTER'),
     os.getenv('VOLC_VOICE_TYPE')
 )
+
+app = Flask(__name__)
+app.debug = os.getenv('FLASK_DEBUG') == '1'
 
 @app.after_request
 def add_cors_headers(response):
@@ -80,4 +81,4 @@ def voice_process():
             os.remove('received_voice.wav')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
