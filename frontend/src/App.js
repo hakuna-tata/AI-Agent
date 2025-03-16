@@ -4,6 +4,8 @@ import axios from "axios";
 import convertToWAV from './utils/convertToWAV';
 import './App.css';
 
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+
 function App() {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -56,7 +58,7 @@ function App() {
       ]);
       try {
         const response = await axios.post(
-          'http://8.148.226.116:5000/text_process',
+          `${apiBaseUrl}/text_process`,
           { text: inputText },
           {
             responseType: "blob",
@@ -88,7 +90,7 @@ function App() {
         const formData = new FormData();
         formData.append('voice', wavBlob, 'voice.wav');
         const response = await axios.post(
-          'http://8.148.226.116:5000/voice_process',
+          `${apiBaseUrl}/voice_process`,
           formData,
           {
             headers: { 'Content-Type': 'multipart/form-data' },
